@@ -1,42 +1,103 @@
 import 'dart:io';
-import 'package:image_picker/image_picker.dart';
-
+import 'package:camera/camera.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' show join;
 import 'package:flutter/material.dart';
 
-void main() => runApp(MyApp());
-
-class MyApp extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() => new _MyAppState();
+Future<void> main() async {
+  final cameras = await availableCameras();
+  final firstCamera = cameras[0];
+  runApp(MaterialApp(
+    theme: ThemeData.light(),
+    home: TakePictureScreen(
+      camera: firstCamera,
+    ),
+  ));
 }
 
-class _MyAppState extends State<MyApp> {
-  File _image;
-  Future getImage() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.camera);
-    setState(() {
-      _image = image;
-    });
+class TakePictureScreen extends StatefulWidget {
+  final CameraDescription camera;
+  const TakePictureScreen({
+    Key key,
+    @required this.camera,
+  }) : super(key: key);
+
+  @override
+  TakePictureScreenState createState() => TakePictureScreenState();
+}
+
+class TakePictureScreenState extends State<TakePictureScreen> {
+  CameraController _controller;
+  Future<void> _initializeControllerFuture;
+  @override
+  void initState() {
+    super.initState();
+    _controller = CameraController(widget.camera, ResolutionPreset.medium);
+
+    _initializeControllerFuture = _controller.initialize();
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   Widget build(BuildContext context) {
-    return new MaterialApp(
-        title: 'Image Picker',
-        home: new Scaffold(
-          appBar: new AppBar(
-            title: new Text('Image Picker'),
-          ),
-          body: new Center(
-            child: _image == null
-                ? new Text('No image selected')
-                : new Image.file(_image),
-          ),
-          floatingActionButton: new FloatingActionButton(
-            onPressed: getImage,
-            tooltip: 'Pick Image',
-            child: new Icon(Icons.camera),
-          ),
-        ));
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Take a Picture'),
+      ),
+      body: FutureBuilder<void>(
+        future: _initializeControllerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return CameraPreview(_controller);
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.camera_alt),
+        onPressed: () async {
+          try {
+            await _initializeControllerFuture;
+            final path = join(
+              (await getTemporaryDirectory()).path,
+              '${DateTime.now()}.png',
+            );
+
+            await _controller.takePicture(path);
+
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DisplayPictureScreen(imagePath: path),
+                ));
+          } catch (e) {
+            print(e);
+          }
+        },
+      ),
+    );
+  }
+}
+
+class DisplayPictureScreen extends StatelessWidget {
+  final String imagePath;
+  const DisplayPictureScreen({Key key, this.imagePath}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Display the Picture'),
+      ),
+      body: new Column(children: <Widget>[Container(child: Image.file(File(imagePath)),), Container(child: Text(imagePath),)],),
+    );
   }
 }
