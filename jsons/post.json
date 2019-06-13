@@ -1,0 +1,55 @@
+{
+    "images": [
+        {
+            "classifiers": [
+                {
+                    "classifier_id": "default",
+                    "name": "default",
+                    "classes": [
+                        {
+                            "class": "digital audiotape",
+                            "score": 0.657,
+                            "type_hierarchy": "/memory device/digital audiotape"
+                        },
+                        {
+                            "class": "memory device",
+                            "score": 0.67
+                        },
+                        {
+                            "class": "videocassette",
+                            "score": 0.578
+                        },
+                        {
+                            "class": "desk dictionary",
+                            "score": 0.525
+                        },
+                        {
+                            "class": "Tampax",
+                            "score": 0.5,
+                            "type_hierarchy": "/plug/Tampax"
+                        },
+                        {
+                            "class": "plug",
+                            "score": 0.5
+                        },
+                        {
+                            "class": "toiletry",
+                            "score": 0.595
+                        },
+                        {
+                            "class": "recording",
+                            "score": 0.601
+                        },
+                        {
+                            "class": "ultramarine color",
+                            "score": 0.959
+                        }
+                    ]
+                }
+            ],
+            "image": "header-logo-OC.jpg"
+        }
+    ],
+    "images_processed": 1,
+    "custom_classes": 0
+}
